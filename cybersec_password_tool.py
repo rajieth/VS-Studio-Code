@@ -5,6 +5,8 @@ This tool generates passwords and evaluates strength only.
 No master password, no file storage, no data collection.
 """
 
+import platform
+import subprocess
 import secrets
 import string
 import sys
@@ -29,15 +31,47 @@ def print_divider():
     print(color_text(SEPARATOR, "34"))
 
 
+def copy_to_clipboard(text):
+    try:
+        system = platform.system()
+        if system == "Windows":
+            subprocess.run(["clip"], input=text, text=True, check=True)
+        elif system == "Darwin":
+            subprocess.run(["pbcopy"], input=text, text=True, check=True)
+        else:
+            subprocess.run(["xclip", "-selection", "clipboard"], input=text, text=True, check=True)
+        print(color_text("Copied to clipboard.", "32"))
+    except Exception:
+        print(color_text("Could not copy to clipboard automatically.", "33"))
+
+
+def prompt_copy(text):
+    choice = input("Copy this to clipboard? (y/N): ").strip().lower()
+    if choice == "y":
+        copy_to_clipboard(text)
+
+
 def get_menu_choice():
     print_divider()
     print("Please choose an option:")
     print("1) Generate a strong password")
-    print("2) Check password strength")
-    print("3) Show security tips")
-    print("4) Exit")
-    choice = input("Enter 1-4: ").strip()
+    print("2) Generate a passphrase")
+    print("3) Check password strength")
+    print("4) Show security tips")
+    print("5) Exit")
+    choice = input("Enter 1-5: ").strip()
     return choice
+
+
+WORD_LIST = [
+    "apple", "banana", "cherry", "dolphin", "eagle", "forest", "galaxy", "harbor",
+    "island", "jungle", "kitten", "lemon", "mountain", "november", "ocean", "puzzle",
+    "quantum", "rocket", "sunset", "tiger", "umbrella", "velvet", "whisper", "xenon",
+    "yellow", "zephyr", "anchor", "breeze", "cascade", "drift", "ember", "flame",
+    "glacier", "horizon", "ignite", "journey", "kettle", "lighthouse", "morning", "nebula",
+    "opal", "phoenix", "quartz", "river", "sapphire", "timber", "unity", "voyage",
+    "wander", "xylophone", "yonder", "zenith"
+]
 
 
 def generate_password(length=DEFAULT_LENGTH):
@@ -56,6 +90,16 @@ def generate_password(length=DEFAULT_LENGTH):
     password_chars += [secrets.choice(all_chars) for _ in range(length - len(password_chars))]
     secrets.SystemRandom().shuffle(password_chars)
     return "".join(password_chars)
+
+
+def generate_passphrase(word_count=4):
+    if word_count < 3:
+        word_count = 3
+
+    words = [secrets.choice(WORD_LIST) for _ in range(word_count)]
+    separators = ["-", "_", ".", "~"]
+    sep = secrets.choice(separators)
+    return sep.join(words)
 
 
 def password_strength(password):
@@ -133,9 +177,21 @@ def main():
                 length = DEFAULT_LENGTH
             password = generate_password(length)
             print(color_text(f"\nGenerated password: {password}", "32"))
+            prompt_copy(password)
             print()
 
         elif choice == "2":
+            count_input = input("Enter number of words for passphrase (recommended 4): ").strip()
+            try:
+                word_count = int(count_input)
+            except ValueError:
+                word_count = 4
+            passphrase = generate_passphrase(word_count)
+            print(color_text(f"\nGenerated passphrase: {passphrase}", "32"))
+            prompt_copy(passphrase)
+            print()
+
+        elif choice == "3":
             password = input("Enter the password to check: ").strip()
             label, reasons = password_strength(password)
             print(color_text(f"\nStrength: {label}", "36"))
@@ -147,15 +203,15 @@ def main():
                 print(color_text("This password is strong.", "32"))
             print()
 
-        elif choice == "3":
+        elif choice == "4":
             show_security_tips()
 
-        elif choice == "4":
+        elif choice == "5":
             print(color_text("Goodbye. Stay secure!", "36"))
             break
 
         else:
-            print(color_text("Invalid choice. Please enter a number from 1 to 4.\n", "31"))
+            print(color_text("Invalid choice. Please enter a number from 1 to 5.\n", "31"))
 
 
 if __name__ == "__main__":
