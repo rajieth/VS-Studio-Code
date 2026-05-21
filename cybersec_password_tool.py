@@ -62,7 +62,7 @@ def get_menu_choice():
     choice = input("Enter 1-5: ").strip()
     return choice
 
-
+#List of words
 WORD_LIST = [
     "apple", "banana", "cherry", "dolphin", "eagle", "forest", "galaxy", "harbor",
     "island", "jungle", "kitten", "lemon", "mountain", "november", "ocean", "puzzle",
